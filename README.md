@@ -1,36 +1,138 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Noviindus2026
 
-## Getting Started
+A Next.js online exam application with OTP-based onboarding, profile completion, timed test experience, and result tracking.
 
-First, run the development server:
+## Tech Stack
+
+- Next.js `15.3.1` (App Router)
+- React `19`
+- TypeScript
+- Redux Toolkit + React Redux
+- Axios
+- Tailwind CSS
+- Sonner (toast notifications)
+
+## Features
+
+- OTP login flow:
+  - Send OTP
+  - Verify OTP
+  - Profile creation (with image upload)
+- Exam flow:
+  - Instructions page
+  - Timed question navigation
+  - Mark for review / attended / not-attended states
+  - Test submission
+  - Result page
+- Auth session handling:
+  - Access + refresh token persistence
+  - Axios interceptor with token refresh retry on `401`
+- Standardized error handling:
+  - `400` invalid request
+  - `401` unauthorized
+  - `500` server error
+  - API `message` preferred when available
+- Toast-based UI feedback (replaced `alert`)
+
+## Project Structure
+
+```text
+app/
+  layout.tsx
+  page.tsx
+  instructions/page.tsx
+  test/page.tsx
+  result/page.tsx
+  providers.tsx
+
+components/
+  getStarted.tsx
+  OtpLogin.tsx
+  Details.tsx
+  SubmitTestModal.tsx
+  ComprehensiveModal.tsx
+  layout/Header.tsx
+
+features/auth/
+  auth-api.ts
+  auth-slice.ts
+
+store/
+  index.ts
+  hooks.ts
+
+utils/
+  api.ts
+  api-error.ts
+  auth-storage.ts
+  logout.ts
+```
+
+## Setup
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Create `.env.local` in project root:
+
+```env
+NEXT_PUBLIC_API_BASE_URL=https://your-api-base-url
+NEXT_PUBLIC_AUTH_REFRESH_PATH=/auth/refresh
+NEXT_PUBLIC_REFRESH_TOKEN_FIELD=refresh_token
+```
+
+3. Run development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Open:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```text
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Build and Run
 
-## Learn More
+```bash
+npm run build
+npm run start
+```
 
-To learn more about Next.js, take a look at the following resources:
+## API Contracts Used
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Auth
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `POST /auth/send-otp`
+- `POST /auth/verify-otp`
+- `POST /auth/create-profile`
+- `POST /auth/refresh`
+- `POST /auth/logout`
 
-## Deploy on Vercel
+### Exam
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `GET /question/list`
+- `POST /answers/submit`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Error Handling Policy
+
+Centralized in `utils/api-error.ts`:
+
+- If backend returns JSON `message`, show it.
+- Else fallback by status:
+  - `400`: "Invalid request. Please check your input and try again."
+  - `401`: "Unauthorized access. Please login again."
+  - `500`: "Server error. Please try again later."
+  - default: generic fallback
+
+## Toast Notifications
+
+`sonner` is configured in `app/layout.tsx` via:
+
+- `<Toaster richColors position="top-right" />`
+
+All previous blocking alerts were replaced with non-blocking toast messages.

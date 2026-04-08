@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAppDispatch } from "@/store/hooks";
+import { toast } from "sonner";
 
 export default function Details({ phoneNumber }: { phoneNumber: string }) {
   const router = useRouter();
@@ -72,10 +73,10 @@ export default function Details({ phoneNumber }: { phoneNumber: string }) {
       if (response.success) {
         router.push("/instructions");
       } else {
-        alert(response.message || "Profile creation failed");
+        toast.error(response.message || "Profile creation failed");
       }
     } catch (error) {
-      alert((error as string) || "Failed to create profile");
+      toast.error((error as string) || "Failed to create profile");
     } finally {
       setIsSubmitting(false);
     }

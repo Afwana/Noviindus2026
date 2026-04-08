@@ -6,6 +6,7 @@ import flag from "../public/images/flag.png";
 import Image from "next/image";
 import { useAppDispatch } from "@/store/hooks";
 import { sendOtpThunk } from "@/features/auth/auth-slice";
+import { toast } from "sonner";
 
 export default function GetStarted() {
   const dispatch = useAppDispatch();
@@ -15,13 +16,13 @@ export default function GetStarted() {
 
   const handleGetStart = async () => {
     if (phoneNumber === "") {
-      alert("Please provide a phone number");
+      toast.error("Please provide a phone number");
       return;
     }
 
     const phoneRegex = /^\d{10}$/;
     if (!phoneRegex.test(phoneNumber)) {
-      alert("Invalid mobile number, please provide valid one");
+      toast.error("Invalid mobile number, please provide valid one");
       return;
     }
 
@@ -33,10 +34,10 @@ export default function GetStarted() {
       if (response.success) {
         setStarted(true);
       } else {
-        alert(response.message || "Failed to send OTP");
+        toast.error(response.message || "Failed to send OTP");
       }
     } catch (error) {
-      alert((error as string) || "Failed to send OTP");
+      toast.error((error as string) || "Failed to send OTP");
     } finally {
       setLoading(false);
     }

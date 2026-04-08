@@ -1,5 +1,4 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
 import {
   sendOtpRequest,
   SendOtpResponse,
@@ -12,6 +11,7 @@ import {
   type VerifyOtpRequest,
 } from "./auth-api";
 import { applyAuthResponse } from "@/utils/auth-storage";
+import { getApiErrorMessage } from "@/utils/api-error";
 
 type AuthState = {
   loading: boolean;
@@ -30,11 +30,7 @@ const initialState: AuthState = {
 };
 
 function getErrorMessage(error: unknown): string {
-  if (axios.isAxiosError(error)) {
-    return (error.response?.data as { message?: string } | undefined)?.message
-      || "Request failed";
-  }
-  return "Request failed";
+  return getApiErrorMessage(error, "Request failed");
 }
 
 export const verifyOtpThunk = createAsyncThunk<

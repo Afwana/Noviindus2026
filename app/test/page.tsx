@@ -7,7 +7,9 @@ import { useEffect, useState } from "react";
 import ComprehensiveModal from "@/components/ComprehensiveModal";
 import SubmitTestModal from "@/components/SubmitTestModal";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+import { api } from "@/utils/api";
+import { getApiErrorMessage } from "@/utils/api-error";
+import { toast } from "sonner";
 
 interface IQuestionOption {
   id: number;
@@ -46,6 +48,7 @@ interface ISubmitAnswerRequestItem {
 
 interface ISubmitAnswerResponse {
   success: boolean;
+  message?: string;
   exam_history_id: string;
   score: number;
   correct: number;
@@ -76,22 +79,17 @@ export default function Page() {
     const fetchQuestions = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem("authToken");
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/question/list`,
-          {
-            headers: {
-              Authorization: `Bearer ${token || ""}`,
-            },
-          },
-        );
-        console.log(response);
+        const response = await api.get<IQuestionApiResponse>("/question/list");
         const responseData = response.data as IQuestionApiResponse;
-        setQuestions(responseData?.questions);
+        if (!responseData?.success) {
+          setError(responseData?.instruction || "Failed to load questions.");
+          setLoading(false);
+          return;
+        }
+        setQuestions(responseData?.questions ?? []);
         setLoading(false);
       } catch (err) {
-        console.error("Error fetching questions:", err);
-        setError("Failed to load questions. Please try again later.");
+        setError(getApiErrorMessage(err, "Failed to load questions."));
         setLoading(false);
       }
     };
@@ -228,24 +226,19 @@ export default function Page() {
 
       const formData = new FormData();
       formData.append("answers", JSON.stringify(payload));
-      const token = localStorage.getItem("authToken");
-      console.log(token);
 
-      const response = await axios.post<ISubmitAnswerResponse>(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/answers/submit`,
+      const response = await api.post<ISubmitAnswerResponse>(
+        "/answers/submit",
         formData,
         {
           timeout: 20000,
-          headers: {
-            Authorization: `Bearer ${token || ""}`,
-          },
         },
       );
-      console.log(response);
 
       if (response.data?.success === false) {
-        alert("Failed to submit test");
+        toast.error(response.data?.message || "Failed to submit test");
         setIsSubmitModalOpen(true);
+        setIsSubmitting(false);
         return;
       }
 
@@ -265,13 +258,9 @@ export default function Page() {
 
       router.push("/result");
     } catch (err) {
-      console.error("Error submitting answers:", err);
       setIsSubmitModalOpen(true);
-      if (axios.isAxiosError(err)) {
-        alert(err.response?.data?.message || "Failed to submit test");
-      } else {
-        alert("Failed to submit test");
-      }
+      setIsSubmitting(false);
+      toast.error(getApiErrorMessage(err, "Failed to submit test"));
     }
   };
 

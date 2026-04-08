@@ -4,6 +4,7 @@ import { useState } from "react";
 import Details from "./Details";
 import { useAppDispatch } from "@/store/hooks";
 import { sendOtpThunk, verifyOtpThunk } from "@/features/auth/auth-slice";
+import { toast } from "sonner";
 
 export default function OtpLogin({ phoneNumber }: { phoneNumber: string }) {
   const dispatch = useAppDispatch();
@@ -14,7 +15,7 @@ export default function OtpLogin({ phoneNumber }: { phoneNumber: string }) {
   const handleGetStart = async () => {
     const updatedOtp = otp.replace(/\s/g, "");
     if (updatedOtp === "") {
-      alert("Please provide OTP, that send to your phone number");
+      toast.error("Please provide OTP, that send to your phone number");
       return;
     }
 
@@ -27,10 +28,10 @@ export default function OtpLogin({ phoneNumber }: { phoneNumber: string }) {
       if (response.success) {
         setStarted(true);
       } else {
-        alert(response.message || "Failed to verify OTP");
+        toast.error(response.message || "Failed to verify OTP");
       }
     } catch (error) {
-      alert((error as string) || "Failed to verify OTP");
+      toast.error((error as string) || "Failed to verify OTP");
     } finally {
       setLoading(false);
     }
@@ -38,13 +39,13 @@ export default function OtpLogin({ phoneNumber }: { phoneNumber: string }) {
 
   const handleResend = async () => {
     if (phoneNumber === "") {
-      alert("Please provide a phone number");
+      toast.error("Please provide a phone number");
       return;
     }
 
     const phoneRegex = /^\+91\d{10}$/;
     if (!phoneRegex.test(phoneNumber)) {
-      alert("Invalid mobile number, please provide valid one");
+      toast.error("Invalid mobile number, please provide valid one");
       return;
     }
 
@@ -55,12 +56,12 @@ export default function OtpLogin({ phoneNumber }: { phoneNumber: string }) {
       ).unwrap();
 
       if (response.success) {
-        alert("OTP Resend successfully");
+        toast.success("OTP resent successfully");
       } else {
-        alert(response.message || "Failed to send OTP");
+        toast.error(response.message || "Failed to send OTP");
       }
     } catch (error) {
-      alert((error as string) || "Failed to send OTP");
+      toast.error((error as string) || "Failed to send OTP");
     } finally {
       setLoading(false);
     }
